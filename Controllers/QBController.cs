@@ -1,5 +1,7 @@
 ﻿using Intuit.Ipp.OAuth2PlatformClient;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using QBFC.Bll.Base;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,34 +13,26 @@ namespace QBFCAPI.Controllers
     [ApiController]
     public class QBController : ControllerBase
     {
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        private readonly IQbClientBll _qbClient;
+
+        public QBController(IQbClientBll qbClient)
         {
-            OAuth2Client oauthClient =
-               new OAuth2Client("ABG7Es1CuYrdN8bqulLHniRgZi3EdS8oZCo74csmrP3CiARpwn", "8GhqRPVdcRlV1Gz0UlIug1R9UXWS2FcGXdhJ6RJE", "https://localhost:44385/", "sandbox");
+            _qbClient = qbClient;
+        }
 
-            var refToken = "AB11660283249O1M3RjIlPkv5HLm4R7c2GjIPusFSp5Vcf3k9Q";
 
-           
-            var tokenResponseFromRef = await oauthClient.RefreshTokenAsync(refToken);
+        [HttpGet]
+        [Route("PulseCheck")]
+        public async Task<IActionResult> PulseCheck()
+        {
+            var response = await _qbClient.PulseCheck();
 
-            if(string.IsNullOrEmpty(tokenResponseFromRef.AccessToken) && string.IsNullOrEmpty(tokenResponseFromRef.RefreshToken))
+            if (string.IsNullOrEmpty(response))
             {
                 return Unauthorized();
-            }          
-          
-            return Ok("Pulse Check !!");
-        }
+            }
 
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
+            return Ok(response);
         }
     }
 }

@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using QBFC.Bll;
+using QBFC.Bll.Base;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
@@ -34,6 +36,8 @@ namespace QBFCAPI
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "QBFC API", Version = "v1", Description = "QBFC API" });
 
             });
+
+            services.AddTransient<IQbClientBll,QbClientBll>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
