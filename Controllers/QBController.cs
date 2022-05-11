@@ -1,12 +1,9 @@
-﻿using Intuit.Ipp.OAuth2PlatformClient;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using QBFC.Bll.Base;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace QBFCAPI.Controllers
 {
@@ -50,7 +47,7 @@ namespace QBFCAPI.Controllers
         {
             try
             {
-                if(string.IsNullOrEmpty(token))
+                if (string.IsNullOrEmpty(token))
                 {
                     return BadRequest();
                 }
@@ -63,6 +60,29 @@ namespace QBFCAPI.Controllers
                 }
 
                 return NotFound("Invalid token");
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
+
+
+        [HttpGet]
+        [Route("GetCompanyInfo")]
+        public async Task<IActionResult> GetCompanyInfo()
+        {
+            try
+            {
+                var response = await _qbClient.GetCompanyInfo();
+
+                if (!response.Success)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
