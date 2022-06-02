@@ -90,5 +90,105 @@ namespace QBFCAPI.Controllers
             }
 
         }
+
+        
+        [HttpGet]
+        [Route("GetCustomer")]
+        public async Task<IActionResult> GetCustomerById(int id)
+        {
+            try
+            {
+                var response = await _qbClient.GetCustomerById(id);
+
+                if (!response.Success)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
+
+        
+        [HttpGet]
+        [Route("GetVendor")]
+        public async Task<IActionResult> GetVendorById(int id)
+        {
+            try
+            {
+                var response = await _qbClient.GetVendorById(id);
+
+                if (!response.Success)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
+
+        [HttpGet]
+        [Route("GetAccount")]
+        public async Task<IActionResult> GetAccountById(int id)
+        {
+            try
+            {
+                var response = await _qbClient.GetAccountById(id);
+
+                if (!response.Success)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
+
+        [HttpPost]
+        [Route("CreateBill")]
+        public async Task<IActionResult> CreateBill([FromBody] object requestbody)
+        {
+            try
+            {
+                var content = JsonConvert.SerializeObject(requestbody, Formatting.Indented);
+
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    var response = await _qbClient.CreateBill(content);
+
+                    if (!response.Success)
+                    {
+                        return Unauthorized();
+                    }
+
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest("Invalid request body");
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
     }
 }
