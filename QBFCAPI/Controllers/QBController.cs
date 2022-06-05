@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace QBFCAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class QBController : ControllerBase
     {
