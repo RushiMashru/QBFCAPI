@@ -43,6 +43,7 @@ namespace QBFC.Bll
                 var client = new HttpClient();
 
                 client.DefaultRequestHeaders.Add("authorization", $"Bearer {authToken}");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
                 var content = new StringContent(data, Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await client.PostAsync(uri, content);

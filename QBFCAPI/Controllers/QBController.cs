@@ -190,5 +190,27 @@ namespace QBFCAPI.Controllers
             }
 
         }
+
+        [HttpGet]
+        [Route("GetBill")]
+        public async Task<IActionResult> GetBillById(int id)
+        {
+            try
+            {
+                var response = await _qbClient.GetBillById(id);
+
+                if (!response.Success)
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
     }
 }
