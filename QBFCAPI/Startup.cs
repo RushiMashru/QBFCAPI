@@ -39,6 +39,7 @@ namespace QBFCAPI
 
             services.AddTransient<IQbClientBll,QbClientBll>();
             services.AddTransient<IHttpClientBll, HttpClientBll>();
+            services.AddTransient<IUtility, Utility>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
