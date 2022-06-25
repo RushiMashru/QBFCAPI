@@ -1,0 +1,42 @@
+{
+  "DocNumber": "8232010",
+  "PrivateNote": "private note which is like a memo and with class",
+  "SalesTermRef": {
+    "value": "6"
+  },
+  "DueDate": "25/06/2022",
+  "Line": [
+    {
+      "DetailType": "AccountBasedExpenseLineDetail",
+      "Amount": 11,
+      "Id": "1",
+      "AccountBasedExpenseLineDetail": {
+        "AccountRef": {
+          "value": "7"
+        },
+        "ClassRef": {
+          "value": "5000000000000242496"
+        }
+      },
+      "Description": "First item in bill"
+    },
+    {
+      "DetailType": "AccountBasedExpenseLineDetail",
+      "Amount": 51,
+      "Id": "2",
+      "AccountBasedExpenseLineDetail": {
+        "AccountRef": {
+          "value": "5"
+        },
+        "ClassRef": {
+          "value": "5000000000000242530"
+        }
+      },
+      "Description": "second item in bill"
+    }
+  ],
+  "VendorRef": {
+    "value": "56"
+  },
+  "TxnDate": "25/06/2022"
+}
