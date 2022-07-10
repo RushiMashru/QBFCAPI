@@ -215,6 +215,36 @@ namespace QBFC.Bll
             }
         }
 
+        public async Task<Response<object>> GetByQuery(string query)
+        {
+            var oauthClient = AuthClient();
+
+            var oTokens = GetTokens();
+
+            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
+
+            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            {
+                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/query?query={query}";
+
+                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
+
+                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+
+                var respData = JsonConvert.DeserializeObject(qbResp);
+
+                var response = new Response<object>(respData);
+
+                return response;
+            }
+            else
+            {
+                var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                return response;
+            }
+        }
+
         public async Task<string> PulseCheck()
         {
             var oauthClient = AuthClient();
