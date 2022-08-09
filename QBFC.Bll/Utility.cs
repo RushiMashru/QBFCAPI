@@ -38,7 +38,7 @@ namespace QBFC.Bll
 
                 oQBBillModel.VendorRef = new JObject();
                 oQBBillModel.VendorRef.name = model.BillModel[0].Vendor;
-                oQBBillModel.VendorRef.value = await GetVendorId(model.BillModel[0].VendorValue);
+                oQBBillModel.VendorRef.value = await GetVendorId(model.BillModel[0].Vendor);
 
                 oQBBillModel.Line = new JArray();
 
@@ -61,13 +61,13 @@ namespace QBFC.Bll
 
                     olineModel.AccountBasedExpenseLineDetail.ClassRef = new JObject();
                     olineModel.AccountBasedExpenseLineDetail.ClassRef.name = item.ExpenseClass;
-                    olineModel.AccountBasedExpenseLineDetail.ClassRef.value = await GetExpenseClassId(item.ExpenseClassValue);
+                    olineModel.AccountBasedExpenseLineDetail.ClassRef.value = await GetExpenseClassId(item.ExpenseClass);
 
                     oQBBillModel.Line.Add(olineModel);
                 }
 
                 var requestJson = JsonConvert.SerializeObject(oQBBillModel);
-                return Task.FromResult(requestJson);
+                return requestJson;
             }
 
             return null;
@@ -77,13 +77,16 @@ namespace QBFC.Bll
         {
             if (!string.IsNullOrEmpty(Vendor))
             {
-                var vendor_query = $"select * from vendor where DisplayName = '{Vendor}'";
+                var vendor_query = $"select * from vendor where DisplayName like '{Vendor[..3]}%'";
 
-                var response = await _qbClient.GetByQuery(vendor_query);
+                var result = await _qbClient.GetByQuery(vendor_query);
 
-                if (response != null && response.Success)
+                var response = JObject.Parse(result);
+
+                if (response != null)
                 {
-                    var id = response.Data;
+                    var id = Convert.ToString(response["QueryResponse"]["Vendor"][0]["Id"]);
+                    return id;
                 }
             }
 
@@ -94,16 +97,24 @@ namespace QBFC.Bll
         {
             if (!string.IsNullOrEmpty(SalesTermName))
             {
-                var sales_query = $"select * from Term where Name = '{SalesTermName}'";
+                string salesName = SalesTermName;
 
-                var response = await _qbClient.GetByQuery(sales_query);
+                if (salesName.Contains("Month"))
+                    salesName = "Month %";
 
-                if (response != null && response.Success)
+                var sales_query = $"select * from Term where Name like '{salesName}'";
+
+                var result = await _qbClient.GetByQuery(sales_query);
+
+                var response = JObject.Parse(result);
+
+                if (response != null)
                 {
-                    var id = response.Data;
+                    var id = Convert.ToString(response["QueryResponse"]["Term"][0]["Id"]);
+                    return id;
                 }
             }
-            
+
             return "";
         }
 
@@ -111,13 +122,16 @@ namespace QBFC.Bll
         {
             if (!string.IsNullOrEmpty(AccountName))
             {
-                var account_query = $"select * from Account where FullyQualifiedName = '{AccountName}'";
+                var account_query = $"select * from Account where FullyQualifiedName like '{AccountName}'";
 
-                var response = await _qbClient.GetByQuery(account_query);
+                var result = await _qbClient.GetByQuery(account_query);
 
-                if (response != null && response.Success)
+                var response = JObject.Parse(result);
+
+                if (response != null)
                 {
-                    var id = response.Data;
+                    var id = Convert.ToString(response["QueryResponse"]["Account"][0]["Id"]);
+                    return id;
                 }
             }
 
@@ -128,13 +142,16 @@ namespace QBFC.Bll
         {
             if (!string.IsNullOrEmpty(ExpenseClass))
             {
-                var class_query = $"select * from Class where FullyQualifiedName = '{ExpenseClass}'";
+                var class_query = $"select * from Class where FullyQualifiedName like '{ExpenseClass}'";
 
-                var response = await _qbClient.GetByQuery(class_query);
+                var result = await _qbClient.GetByQuery(class_query);
 
-                if (response != null && response.Success)
+                var response = JObject.Parse(result);
+
+                if (response != null)
                 {
-                    var id = response.Data;
+                    var id = Convert.ToString(response["QueryResponse"]["Class"][0]["Id"]);
+                    return id;
                 }
             }
 

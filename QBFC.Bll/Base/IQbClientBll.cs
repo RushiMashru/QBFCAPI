@@ -16,6 +16,6 @@ namespace QBFC.Bll.Base
         Task<Response<object>> GetAccountById(int id);
         Task<Response<object>> CreateBill(string content);
         Task<Response<object>> GetBillById(int id);
-        Task<Response<object>> GetByQuery(string query);
+        Task<string> GetByQuery(string query);
     }
 }

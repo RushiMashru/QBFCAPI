@@ -215,7 +215,7 @@ namespace QBFC.Bll
             }
         }
 
-        public async Task<Response<object>> GetByQuery(string query)
+        public async Task<string> GetByQuery(string query)
         {
             var oauthClient = AuthClient();
 
@@ -229,20 +229,13 @@ namespace QBFC.Bll
 
                 SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
 
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
-
-                var respData = JsonConvert.DeserializeObject(qbResp);
-
-                var response = new Response<object>(respData);
+                var response = await _httpClient.HttpGet(uri, respToken.AccessToken);
 
                 return response;
             }
-            else
-            {
-                var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                return response;
-            }
+            return "";
+
         }
 
         public async Task<string> PulseCheck()
