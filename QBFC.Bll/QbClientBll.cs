@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using QBFC.Bll.Base;
+using QBFC.Models.DataModel;
 using QBFC.Models.ViewModel;
+using QBFC.Repos.Base;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,10 +18,13 @@ namespace QBFC.Bll
         private readonly IHttpClientBll _httpClient;
         private readonly string _env;
         private readonly string _baseUrl;
-        public QbClientBll(IConfiguration configuration, IHttpClientBll httpClient)
+        public readonly IQbLogsRepos _qbRepos;
+
+        public QbClientBll(IConfiguration configuration, IHttpClientBll httpClient, IQbLogsRepos qbRepos)
         {
             _configuration = configuration;
             _httpClient = httpClient;
+            _qbRepos = qbRepos;
             _env = _configuration.GetSection("QbEnv").Value;
             _baseUrl = _env == "sandbox" ? _configuration.GetSection("QbBaseSandUrl").Value : _configuration.GetSection("QbBaseUrl").Value;
         }
@@ -55,11 +60,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo");
 
                 return response;
             }
@@ -85,11 +94,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetCustomerById {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetCustomerById", false);
 
                 return response;
             }
@@ -115,11 +128,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetVendorById {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetVendorById", false);
 
                 return response;
             }
@@ -145,11 +162,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetAccountById {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetAccountById", false);
 
                 return response;
             }
@@ -175,11 +196,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill", false);
 
                 return response;
             }
@@ -205,11 +230,15 @@ namespace QBFC.Bll
 
                 var response = new Response<object>(respData);
 
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById {uri}");
+
                 return response;
             }
             else
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
+
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById" , false);
 
                 return response;
             }
@@ -231,11 +260,14 @@ namespace QBFC.Bll
 
                 var response = await _httpClient.HttpGet(uri, respToken.AccessToken);
 
+                _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(response), $"GetByQuery {uri}");
+
                 return response;
             }
 
-            return "";
+            _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(string.Empty), "GetByQuery", false);
 
+            return "";
         }
 
         public async Task<string> PulseCheck()
@@ -248,10 +280,14 @@ namespace QBFC.Bll
 
             if (string.IsNullOrEmpty(response.AccessToken) || string.IsNullOrEmpty(response.RefreshToken))
             {
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), "PulseCheck", false);
+
                 return null;
             }
             else if (SetTokens(response.AccessToken, response.RefreshToken, setConsumedDt: true))
             {
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), "PulseCheck");
+
                 return "Pulse Checked !!";
             }
             else
@@ -268,10 +304,14 @@ namespace QBFC.Bll
 
             if (string.IsNullOrEmpty(response.AccessToken) || string.IsNullOrEmpty(response.RefreshToken))
             {
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), "SetRToken", false);
+
                 return false;
             }
             else
             {
+                _ = await InsertLog(JsonConvert.SerializeObject(rtoken), JsonConvert.SerializeObject(response), "SetRToken");
+
                 return SetTokens(response.AccessToken, response.RefreshToken, setCreatedDt: true);
             }
         }
@@ -315,5 +355,18 @@ namespace QBFC.Bll
             }
         }
 
+        private async Task<int> InsertLog(string request, string response, string message, bool isSuccess=true) 
+        {
+            var result = await _qbRepos.InsertLogs(new tAPILogs
+            {
+                Source = $"API",
+                Request = request,
+                Response = response,
+                Message = isSuccess ? $"OK {message}" : $"Failed {message}",
+                CreatedDT = DateTime.Now
+            });
+
+            return result;
+        }
     }
 }

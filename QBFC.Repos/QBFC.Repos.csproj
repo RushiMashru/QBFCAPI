@@ -5,12 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IppDotNetSdkForQuickBooksApiV3" Version="14.6.3" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\QBFC.Models\QBFC.Models.csproj" />
-    <ProjectReference Include="..\QBFC.Repos\QBFC.Repos.csproj" />
   </ItemGroup>
 
 </Project>
