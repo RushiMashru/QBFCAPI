@@ -18,13 +18,15 @@ namespace QBFC.Bll
         private readonly IHttpClientBll _httpClient;
         private readonly string _env;
         private readonly string _baseUrl;
-        public readonly IQbLogsRepos _qbRepos;
+        private readonly IQbLogsRepos _qbRepos;
+        private readonly IQbAuthRepos _qbAuthRepos;
 
-        public QbClientBll(IConfiguration configuration, IHttpClientBll httpClient, IQbLogsRepos qbRepos)
+        public QbClientBll(IConfiguration configuration, IHttpClientBll httpClient, IQbLogsRepos qbRepos, IQbAuthRepos qbAuthRepos)
         {
             _configuration = configuration;
             _httpClient = httpClient;
             _qbRepos = qbRepos;
+            _qbAuthRepos = qbAuthRepos;
             _env = _configuration.GetSection("QbEnv").Value;
             _baseUrl = _env == "sandbox" ? _configuration.GetSection("QbBaseSandUrl").Value : _configuration.GetSection("QbBaseUrl").Value;
         }
@@ -238,7 +240,7 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById" , false);
+                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById", false);
 
                 return response;
             }
@@ -316,6 +318,84 @@ namespace QBFC.Bll
             }
         }
 
+        // insert or update auth details in DB
+        public async Task<int> UpsertAuthDetails(AuthModel authModel)
+        {
+            if (authModel != null)
+            {
+                tAuthDetails otAuthDetails = new tAuthDetails()
+                {
+                    ID = authModel.ID,
+                    AccountID = authModel.AccountID,
+                    QBID = authModel.QBID,
+                    ClientID = authModel.ClientID,
+                    ClientSecret = authModel.ClientSecret,
+                    AccessToken = authModel.AccessToken,
+                    RefreshToken = authModel.RefreshToken,
+                    QBEnv = authModel.QBEnv,
+                    Status = authModel.Status,
+                    CreatedDT = DateTime.Now,
+                    ConsumedDT = DateTime.Now
+                };
+
+                var result = await _qbAuthRepos.UpsertAuthDetails(otAuthDetails);
+
+                _ = await InsertLog(JsonConvert.SerializeObject(otAuthDetails), JsonConvert.SerializeObject(result), "UpsertAuthDetails");
+
+                return result;
+
+            }
+
+            _ = await InsertLog(JsonConvert.SerializeObject(authModel), JsonConvert.SerializeObject(0), "UpsertAuthDetails", false);
+
+            return 0;
+        }
+
+        // update refresh token in DB
+        public async Task<int> UpdateRefreshToken(int Id, string RefreshToken)
+        {
+            var result = await _qbAuthRepos.UpdateRefreshToken(Id, RefreshToken);
+
+            _ = await InsertLog(JsonConvert.SerializeObject(new { ID = Id, RefreshToken = RefreshToken }),
+                JsonConvert.SerializeObject(result), "UpdateRefreshToken");
+
+            return result;
+
+        }
+
+        // get auth details from DB
+        public async Task<Response<AuthModel>> GetAuthByAccountId(int AccountId, string QBEnv)
+        {
+            if (AccountId != 0 && !string.IsNullOrEmpty(QBEnv))
+            {
+                var response = await _qbAuthRepos.GetAuthByAccountId(AccountId, QBEnv);
+
+                AuthModel authModel = new AuthModel
+                {
+                    ID = response.ID,
+                    AccountID = response.AccountID,
+                    QBID = response.QBID,
+                    ClientID = response.ClientID,
+                    ClientSecret = response.ClientSecret,
+                    AccessToken = response.AccessToken,
+                    RefreshToken = response.RefreshToken,
+                    QBEnv = response.QBEnv,
+                    Status = response.Status,
+                    CreatedDT = response.CreatedDT,
+                    ConsumedDT = response.ConsumedDT
+                };
+
+                var respData = new Response<AuthModel>(authModel);
+
+                return respData;
+            }
+
+            return new Response<AuthModel>() { Success = false, Message = "Something went wrong" };
+        }
+
+
+
+        // helper methods
         private (string accessToken, string refreshToken, string RealmId) GetTokens()
         {
             string json = System.IO.File.ReadAllText("auth.json");
@@ -355,7 +435,7 @@ namespace QBFC.Bll
             }
         }
 
-        private async Task<int> InsertLog(string request, string response, string message, bool isSuccess=true) 
+        private async Task<int> InsertLog(string request, string response, string message, bool isSuccess = true)
         {
             var result = await _qbRepos.InsertLogs(new tAPILogs
             {

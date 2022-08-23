@@ -51,6 +51,7 @@ namespace QBFCAPI
             services.AddTransient<IUtility, Utility>();
 
             services.AddTransient<IQbLogsRepos, QbLogsRepos>();
+            services.AddTransient<IQbAuthRepos, QbAuthRepos>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

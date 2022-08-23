@@ -1,42 +1,72 @@
-{
-  "DocNumber": "8232010",
-  "PrivateNote": "private note which is like a memo and with class",
-  "SalesTermRef": {
-    "value": "6"
-  },
-  "DueDate": "25/06/2022",
-  "Line": [
-    {
-      "DetailType": "AccountBasedExpenseLineDetail",
-      "Amount": 11,
-      "Id": "1",
-      "AccountBasedExpenseLineDetail": {
-        "AccountRef": {
-          "value": "7"
-        },
-        "ClassRef": {
-          "value": "5000000000000242496"
-        }
-      },
-      "Description": "First item in bill"
+[
+  {
+    "DocNumber": "8232010",
+    "PrivateNote": "private note which is like a memo and with class",
+    "SalesTermRef": {
+      "value": "6"
     },
-    {
-      "DetailType": "AccountBasedExpenseLineDetail",
-      "Amount": 51,
-      "Id": "2",
-      "AccountBasedExpenseLineDetail": {
-        "AccountRef": {
-          "value": "5"
+    "DueDate": "25/06/2022",
+    "Line": [
+      {
+        "DetailType": "AccountBasedExpenseLineDetail",
+        "Amount": 11,
+        "Id": "1",
+        "AccountBasedExpenseLineDetail": {
+          "AccountRef": {
+            "value": "7"
+          },
+          "ClassRef": {
+            "value": "5000000000000242496"
+          }
         },
-        "ClassRef": {
-          "value": "5000000000000242530"
-        }
+        "Description": "First item in bill"
       },
-      "Description": "second item in bill"
-    }
-  ],
-  "VendorRef": {
-    "value": "56"
+      {
+        "DetailType": "AccountBasedExpenseLineDetail",
+        "Amount": 51,
+        "Id": "2",
+        "AccountBasedExpenseLineDetail": {
+          "AccountRef": {
+            "value": "5"
+          },
+          "ClassRef": {
+            "value": "5000000000000242530"
+          }
+        },
+        "Description": "second item in bill"
+      }
+    ],
+    "VendorRef": {
+      "value": "56"
+    },
+    "TxnDate": "25/06/2022"
   },
-  "TxnDate": "25/06/2022"
-}
+  {
+    "billModel": [
+      {
+        "RefNumber": "8232023",
+        "Vendor": "Bob's Burger Joint",
+        "TxnDate": "10/08/2022",
+        "DueDate": "12/08/2022",
+        "SalesTerm": "Month End + 30 days",
+        "ExpenseClass": "Tovey Little",
+        "PrivateNote": "https://smart.filesoncloud.co.uk/inprocess/2022/OLSINV_08232006-2204051058553.pdf",
+        "ExpenseAccount": "Advertising",
+        "ExpenseDesc": "First item in bill via latest code 10082022",
+        "ExpenseAmount": "10"
+      },
+      {
+        "RefNumber": "8232023",
+        "Vendor": "Bob's Burger Joint",
+        "TxnDate": "10/08/2022",
+        "DueDate": "12/08/2022",
+        "SalesTerm": "Month End + 30 days",
+        "ExpenseClass": "RM",
+        "PrivateNote": "https://smart.filesoncloud.co.uk/inprocess/2022/OLSINV_08232006-2204051058553.pdf",
+        "ExpenseAccount": "Fees Billed",
+        "ExpenseDesc": "second item in bill via latest deploy",
+        "ExpenseAmount": "111"
+      }
+    ]
+  }
+]

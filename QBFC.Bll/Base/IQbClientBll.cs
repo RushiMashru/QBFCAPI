@@ -17,5 +17,8 @@ namespace QBFC.Bll.Base
         Task<Response<object>> CreateBill(string content);
         Task<Response<object>> GetBillById(int id);
         Task<string> GetByQuery(string query);
+        Task<int> UpsertAuthDetails(AuthModel authModel);
+        Task<Response<AuthModel>> GetAuthByAccountId(int AccountId, string QBEnv);
+        Task<int> UpdateRefreshToken(int Id, string RefreshToken);
     }
 }

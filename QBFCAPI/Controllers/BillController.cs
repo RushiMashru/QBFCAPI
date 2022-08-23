@@ -45,5 +45,74 @@ namespace QBFCAPI.Controllers
             }
 
         }
+
+        [HttpPost]
+        [Route("UpsertAuth")]
+        public async Task<IActionResult> UpsertAuth(AuthModel authModel)
+        {
+            try
+            {
+                if (authModel == null)
+                {
+                    return BadRequest("Invalid request check auth model");
+                }
+
+                var result = await _qbClient.UpsertAuthDetails(authModel);
+
+                Response<int> response = new Response<int>(result);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
+
+        [HttpGet]
+        [Route("GetAuthDetails")]
+        public async Task<IActionResult> GetAuthDetails(int accountId, string qbEnv)
+        {
+            try
+            {
+                if (accountId != 0 && !string.IsNullOrEmpty(qbEnv))
+                {
+                    var response = await _qbClient.GetAuthByAccountId(accountId, qbEnv);
+
+                    return Ok(response);
+                }
+
+                return BadRequest("Invalid request");
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+        }
+
+        [HttpPut]
+        [Route("UpdateRefreshToken")]
+        public async Task<IActionResult> UpdateRefreshToken(int Id, string RefreshToken)
+        {
+            try
+            {
+                if (Id > 0 && string.IsNullOrEmpty(RefreshToken))
+                {
+                    return BadRequest("Invalid request");
+                }
+
+                var result = await _qbClient.UpdateRefreshToken(Id, RefreshToken);
+
+                Response<int> response = new Response<int>(result);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
+            }
+
+        }
     }
 }

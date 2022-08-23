@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
-namespace QBFC.Models.DataModel
+namespace QBFC.Models.ViewModel
 {
-    [Table("tAuthDetails")]
-    public class tAuthDetails
+    public  class AuthModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         public int AccountID { get; set; }
         public string QBID { get; set; }
