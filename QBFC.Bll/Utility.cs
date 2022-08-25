@@ -34,11 +34,11 @@ namespace QBFC.Bll
 
                 oQBBillModel.SalesTermRef = new JObject();
                 oQBBillModel.SalesTermRef.name = model.BillModel[0].SalesTerm;
-                oQBBillModel.SalesTermRef.value = await GetSalesTermId(model.BillModel[0].SalesTerm);
+                oQBBillModel.SalesTermRef.value = await GetSalesTermId(model.BillModel[0].SalesTerm, model.AccountId);
 
                 oQBBillModel.VendorRef = new JObject();
                 oQBBillModel.VendorRef.name = model.BillModel[0].Vendor;
-                oQBBillModel.VendorRef.value = await GetVendorId(model.BillModel[0].Vendor);
+                oQBBillModel.VendorRef.value = await GetVendorId(model.BillModel[0].Vendor, model.AccountId);
 
                 oQBBillModel.Line = new JArray();
 
@@ -57,11 +57,11 @@ namespace QBFC.Bll
 
                     olineModel.AccountBasedExpenseLineDetail.AccountRef = new JObject();
                     olineModel.AccountBasedExpenseLineDetail.AccountRef.name = item.ExpenseAccount;
-                    olineModel.AccountBasedExpenseLineDetail.AccountRef.value = await GetAccountId(item.ExpenseAccount);
+                    olineModel.AccountBasedExpenseLineDetail.AccountRef.value = await GetAccountId(item.ExpenseAccount, model.AccountId);
 
                     olineModel.AccountBasedExpenseLineDetail.ClassRef = new JObject();
                     olineModel.AccountBasedExpenseLineDetail.ClassRef.name = item.ExpenseClass;
-                    olineModel.AccountBasedExpenseLineDetail.ClassRef.value = await GetExpenseClassId(item.ExpenseClass);
+                    olineModel.AccountBasedExpenseLineDetail.ClassRef.value = await GetExpenseClassId(item.ExpenseClass, model.AccountId);
 
                     oQBBillModel.Line.Add(olineModel);
                 }
@@ -73,13 +73,13 @@ namespace QBFC.Bll
             return null;
         }
 
-        private async Task<string> GetVendorId(string Vendor)
+        private async Task<string> GetVendorId(string Vendor, int AccountId)
         {
             if (!string.IsNullOrEmpty(Vendor))
             {
                 var vendor_query = $"select * from vendor where DisplayName like '{Vendor[..3]}%'";
 
-                var result = await _qbClient.GetByQuery(vendor_query);
+                var result = await _qbClient.GetByQuery(vendor_query, AccountId);
 
                 var response = JObject.Parse(result);
 
@@ -93,7 +93,7 @@ namespace QBFC.Bll
             return "";
         }
 
-        private async Task<string> GetSalesTermId(string SalesTermName)
+        private async Task<string> GetSalesTermId(string SalesTermName, int AccountId)
         {
             if (!string.IsNullOrEmpty(SalesTermName))
             {
@@ -104,7 +104,7 @@ namespace QBFC.Bll
 
                 var sales_query = $"select * from Term where Name like '{salesName}'";
 
-                var result = await _qbClient.GetByQuery(sales_query);
+                var result = await _qbClient.GetByQuery(sales_query, AccountId);
 
                 var response = JObject.Parse(result);
 
@@ -118,13 +118,13 @@ namespace QBFC.Bll
             return "";
         }
 
-        private async Task<string> GetAccountId(string AccountName)
+        private async Task<string> GetAccountId(string AccountName, int AccountId)
         {
             if (!string.IsNullOrEmpty(AccountName))
             {
                 var account_query = $"select * from Account where FullyQualifiedName like '{AccountName}'";
 
-                var result = await _qbClient.GetByQuery(account_query);
+                var result = await _qbClient.GetByQuery(account_query, AccountId);
 
                 var response = JObject.Parse(result);
 
@@ -138,13 +138,13 @@ namespace QBFC.Bll
             return "";
         }
 
-        private async Task<string> GetExpenseClassId(string ExpenseClass)
+        private async Task<string> GetExpenseClassId(string ExpenseClass, int AccountId)
         {
             if (!string.IsNullOrEmpty(ExpenseClass))
             {
                 var class_query = $"select * from Class where FullyQualifiedName like '{ExpenseClass}'";
 
-                var result = await _qbClient.GetByQuery(class_query);
+                var result = await _qbClient.GetByQuery(class_query, AccountId);
 
                 var response = JObject.Parse(result);
 

@@ -42,27 +42,61 @@ namespace QBFC.Bll
             return oauthClient;
         }
 
-        public async Task<Response<object>> GetCompanyInfo()
+        private async Task<(tAuthDetails AuthDetails, bool IsSuccess)> AuthClient(int AccountId)
         {
-            var oauthClient = AuthClient();
+            var redirectUrl = _configuration.GetSection("RedirectUrl").Value;
 
-            var oTokens = GetTokens();
+            var oAuthDetails = await _qbAuthRepos.GetAuthByAccountId(AccountId, _env);
 
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
+            var clientId = oAuthDetails?.ClientID;
+
+            var clientSecret = oAuthDetails?.ClientSecret;
+
+            OAuth2Client oauthClient = new OAuth2Client(clientId, clientSecret, redirectUrl, _env);
+
+            var respToken = await oauthClient.RefreshTokenAsync(oAuthDetails.RefreshToken);
+
+            bool isSuccess = false;
+
+            var log_auth = new
+            {
+                AccountId = AccountId,
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                RedirectUrl = redirectUrl,
+                Env = _env
+            };
 
             if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/companyinfo/{oTokens.RealmId}?minorversion=63";
+                oAuthDetails.AccessToken = respToken.AccessToken;
+                oAuthDetails.RefreshToken = respToken.RefreshToken;
+                oAuthDetails.ConsumedDT = DateTime.Now;
+                _ = await _qbAuthRepos.UpsertAuthDetails(oAuthDetails);
+                _ = await InsertLog(JsonConvert.SerializeObject(log_auth), JsonConvert.SerializeObject(respToken), $"AuthClient");
+                isSuccess = true;
+            }
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
+            _ = await InsertLog(JsonConvert.SerializeObject(log_auth), JsonConvert.SerializeObject(respToken), $"AuthClient", false);
 
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+            return (oAuthDetails, isSuccess);
+        }
+
+        public async Task<Response<object>> GetCompanyInfo(int AccountId)
+        {
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
+
+            if (AuthDetails != null && IsSuccess)
+            {
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/companyinfo/{AuthDetails.QBID}?minorversion=63";
+
+                var qbResp = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo {uri}");
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo AccountId: {AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -70,33 +104,27 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo");
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), $"GetCompanyInfo AccountId: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<Response<object>> GetCustomerById(int id)
+        public async Task<Response<object>> GetCustomerById(int CustomerId, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/customer/{id}?minorversion=65";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/customer/{CustomerId}?minorversion=65";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
-
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+                var qbResp = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetCustomerById {uri}");
+                _ = await InsertLog(JsonConvert.SerializeObject(CustomerId), JsonConvert.SerializeObject(response), $"GetCustomerById AccountId: {AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -104,33 +132,27 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetCustomerById", false);
+                _ = await InsertLog(JsonConvert.SerializeObject(CustomerId), JsonConvert.SerializeObject(response), $"GetCustomerById AccountId: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<Response<object>> GetVendorById(int id)
+        public async Task<Response<object>> GetVendorById(int VendorId, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/vendor/{id}?minorversion=65";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/vendor/{VendorId}?minorversion=65";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
-
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+                var qbResp = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetVendorById {uri}");
+                _ = await InsertLog(JsonConvert.SerializeObject(VendorId), JsonConvert.SerializeObject(response), $"GetVendorById AccountId: {AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -138,33 +160,27 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetVendorById", false);
+                _ = await InsertLog(JsonConvert.SerializeObject(VendorId), JsonConvert.SerializeObject(response), $"GetVendorById AccountId: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<Response<object>> GetAccountById(int id)
+        public async Task<Response<object>> GetExpenceAccountById(int ExpenceAccountId, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/account/{id}?minorversion=65";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/account/{ExpenceAccountId}?minorversion=65";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
-
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+                var qbResp = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetAccountById {uri}");
+                _ = await InsertLog(JsonConvert.SerializeObject(ExpenceAccountId), JsonConvert.SerializeObject(response), $"GetAccountById AccountId: {AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -172,33 +188,27 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetAccountById", false);
+                _ = await InsertLog(JsonConvert.SerializeObject(ExpenceAccountId), JsonConvert.SerializeObject(response), $"GetAccountById AccountId: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<Response<object>> CreateBill(string content)
+        public async Task<Response<object>> CreateBill(string content, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/bill?minorversion=65";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/bill?minorversion=65";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
-
-                var qbResp = await _httpClient.HttpPost(uri, respToken.AccessToken, content);
+                var qbResp = await _httpClient.HttpPost(uri, AuthDetails.AccessToken, content);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill {uri}");
+                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill Id: {AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -206,33 +216,27 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill", false);
+                _ = await InsertLog(content, JsonConvert.SerializeObject(response), $"CreateBill Id: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<Response<object>> GetBillById(int id)
+        public async Task<Response<object>> GetBillById(int BillId, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/bill/{id}?minorversion=65";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/bill/{BillId}?minorversion=65";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
-
-                var qbResp = await _httpClient.HttpGet(uri, respToken.AccessToken);
+                var qbResp = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
                 var respData = JsonConvert.DeserializeObject(qbResp);
 
                 var response = new Response<object>(respData);
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById {uri}");
+                _ = await InsertLog(JsonConvert.SerializeObject(BillId), JsonConvert.SerializeObject(response), $"GetBillById AccountId:{AccountId} Uri: {uri}");
 
                 return response;
             }
@@ -240,62 +244,42 @@ namespace QBFC.Bll
             {
                 var response = new Response<object>() { Success = false, Message = "Authentication Token Issue" };
 
-                _ = await InsertLog(JsonConvert.SerializeObject(id), JsonConvert.SerializeObject(response), $"GetBillById", false);
+                _ = await InsertLog(JsonConvert.SerializeObject(BillId), JsonConvert.SerializeObject(response), $"GetBillById AccountId: {AccountId}", false);
 
                 return response;
             }
         }
 
-        public async Task<string> GetByQuery(string query)
+        public async Task<string> GetByQuery(string query, int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var respToken = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (!string.IsNullOrEmpty(respToken.AccessToken) || !string.IsNullOrEmpty(respToken.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                var uri = $"{_baseUrl}/v3/company/{oTokens.RealmId}/query?query={query}";
+                var uri = $"{_baseUrl}/v3/company/{AuthDetails.QBID}/query?query={query}";
 
-                SetTokens(respToken.AccessToken, respToken.RefreshToken, setConsumedDt: true);
+                var response = await _httpClient.HttpGet(uri, AuthDetails.AccessToken);
 
-                var response = await _httpClient.HttpGet(uri, respToken.AccessToken);
-
-                _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(response), $"GetByQuery {uri}");
+                _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(response), $"GetByQuery AccountId: {AccountId} Uri: {uri}");
 
                 return response;
             }
 
-            _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(string.Empty), "GetByQuery", false);
+            _ = await InsertLog(JsonConvert.SerializeObject(query), JsonConvert.SerializeObject(string.Empty), $"GetByQuery AccountId: {AccountId}", false);
 
             return "";
         }
 
-        public async Task<string> PulseCheck()
+        public async Task<string> PulseCheck(int AccountId)
         {
-            var oauthClient = AuthClient();
+            var (AuthDetails, IsSuccess) = await AuthClient(AccountId);
 
-            var oTokens = GetTokens();
-
-            var response = await oauthClient.RefreshTokenAsync(oTokens.refreshToken);
-
-            if (string.IsNullOrEmpty(response.AccessToken) || string.IsNullOrEmpty(response.RefreshToken))
+            if (AuthDetails != null && IsSuccess)
             {
-                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), "PulseCheck", false);
-
-                return null;
-            }
-            else if (SetTokens(response.AccessToken, response.RefreshToken, setConsumedDt: true))
-            {
-                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(response), "PulseCheck");
-
+                _ = await InsertLog(string.Empty, JsonConvert.SerializeObject(AuthDetails), $"PulseCheck AccountId: {AccountId}");
                 return "Pulse Checked !!";
             }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         public async Task<bool> SetRToken(string rtoken)

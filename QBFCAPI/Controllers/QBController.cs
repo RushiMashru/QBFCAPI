@@ -21,11 +21,14 @@ namespace QBFCAPI.Controllers
 
         [HttpGet]
         [Route("PulseCheck")]
-        public async Task<IActionResult> PulseCheck()
+        public async Task<IActionResult> PulseCheck(int AccountId)
         {
             try
             {
-                var response = await _qbClient.PulseCheck();
+                if (AccountId <= 0)
+                    return BadRequest("Invalid AccountId");
+
+                var response = await _qbClient.PulseCheck(AccountId);
 
                 if (string.IsNullOrEmpty(response))
                 {
@@ -71,11 +74,14 @@ namespace QBFCAPI.Controllers
 
         [HttpGet]
         [Route("GetCompanyInfo")]
-        public async Task<IActionResult> GetCompanyInfo()
+        public async Task<IActionResult> GetCompanyInfo(int AccountId)
         {
             try
             {
-                var response = await _qbClient.GetCompanyInfo();
+                if (AccountId <= 0)
+                    return BadRequest("Invalid AccountId");
+
+                var response = await _qbClient.GetCompanyInfo(AccountId);
 
                 if (!response.Success)
                 {
@@ -91,14 +97,17 @@ namespace QBFCAPI.Controllers
 
         }
 
-        
+
         [HttpGet]
         [Route("GetCustomer")]
-        public async Task<IActionResult> GetCustomerById(int id)
+        public async Task<IActionResult> GetCustomerById(int CustomerId, int AccountId)
         {
             try
             {
-                var response = await _qbClient.GetCustomerById(id);
+                if (CustomerId <= 0 || AccountId <= 0)
+                    return BadRequest("Invalid Request");
+
+                var response = await _qbClient.GetCustomerById(CustomerId, AccountId);
 
                 if (!response.Success)
                 {
@@ -114,14 +123,17 @@ namespace QBFCAPI.Controllers
 
         }
 
-        
+
         [HttpGet]
         [Route("GetVendor")]
-        public async Task<IActionResult> GetVendorById(int id)
+        public async Task<IActionResult> GetVendorById(int VendorId, int AccountId)
         {
             try
             {
-                var response = await _qbClient.GetVendorById(id);
+                if (VendorId <= 0 || AccountId <= 0)
+                    return BadRequest("Invalid Request");
+
+                var response = await _qbClient.GetVendorById(VendorId, AccountId);
 
                 if (!response.Success)
                 {
@@ -138,12 +150,15 @@ namespace QBFCAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetAccount")]
-        public async Task<IActionResult> GetAccountById(int id)
+        [Route("GetExpenceAccount")]
+        public async Task<IActionResult> GetExpenceAccountById(int ExpenceAccountId, int AccountId)
         {
             try
             {
-                var response = await _qbClient.GetAccountById(id);
+                if (ExpenceAccountId <= 0 || AccountId <= 0)
+                    return BadRequest("Invalid Request");
+
+                var response = await _qbClient.GetExpenceAccountById(ExpenceAccountId, AccountId);
 
                 if (!response.Success)
                 {
@@ -161,15 +176,15 @@ namespace QBFCAPI.Controllers
 
         [HttpPost]
         [Route("CreateBill")]
-        public async Task<IActionResult> CreateBill([FromBody] object requestbody)
+        public async Task<IActionResult> CreateBill([FromBody] object requestbody, int AccountId)
         {
             try
             {
                 var content = JsonConvert.SerializeObject(requestbody, Formatting.Indented);
 
-                if (!string.IsNullOrWhiteSpace(content))
+                if (!string.IsNullOrWhiteSpace(content) && AccountId <= 0)
                 {
-                    var response = await _qbClient.CreateBill(content);
+                    var response = await _qbClient.CreateBill(content, AccountId);
 
                     if (!response.Success)
                     {
@@ -182,7 +197,7 @@ namespace QBFCAPI.Controllers
                 {
                     return BadRequest("Invalid request body");
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -193,11 +208,14 @@ namespace QBFCAPI.Controllers
 
         [HttpGet]
         [Route("GetBill")]
-        public async Task<IActionResult> GetBillById(int id)
+        public async Task<IActionResult> GetBillById(int BillId, int AccountId)
         {
             try
             {
-                var response = await _qbClient.GetBillById(id);
+                if (BillId <= 0 || AccountId <= 0)
+                    return BadRequest("Invalid Request");
+
+                var response = await _qbClient.GetBillById(BillId, AccountId);
 
                 if (!response.Success)
                 {

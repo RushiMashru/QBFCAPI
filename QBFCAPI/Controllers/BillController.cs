@@ -30,12 +30,12 @@ namespace QBFCAPI.Controllers
             {
                 var oQbBillJson = await _utility.GetQBBillModel(billRequestModel);
 
-                if (string.IsNullOrEmpty(oQbBillJson))
+                if (string.IsNullOrEmpty(oQbBillJson) || billRequestModel.AccountId <= 0)
                 {
                     return BadRequest("Invalid request check bill model");
                 }
 
-                var response = await _qbClient.CreateBill(oQbBillJson);
+                var response = await _qbClient.CreateBill(oQbBillJson, billRequestModel.AccountId);
 
                 return Ok(response);
             }

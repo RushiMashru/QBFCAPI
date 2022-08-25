@@ -8,15 +8,15 @@ namespace QBFC.Bll.Base
 {
     public interface IQbClientBll
     {
-        Task<string> PulseCheck();
+        Task<string> PulseCheck(int AccountId);
         Task<bool> SetRToken(string rtoken);
-        Task<Response<object>> GetCompanyInfo();
-        Task<Response<object>> GetCustomerById(int id);
-        Task<Response<object>> GetVendorById(int id);
-        Task<Response<object>> GetAccountById(int id);
-        Task<Response<object>> CreateBill(string content);
-        Task<Response<object>> GetBillById(int id);
-        Task<string> GetByQuery(string query);
+        Task<Response<object>> GetCompanyInfo(int AccountId);
+        Task<Response<object>> GetCustomerById(int CustomerId, int AccountId);
+        Task<Response<object>> GetVendorById(int VendorId, int AccountId);
+        Task<Response<object>> GetExpenceAccountById(int ExpenceAccountId, int AccountId);
+        Task<Response<object>> CreateBill(string content, int AccountId);
+        Task<Response<object>> GetBillById(int BillId, int AccountId);
+        Task<string> GetByQuery(string query, int AccountId);
         Task<int> UpsertAuthDetails(AuthModel authModel);
         Task<Response<AuthModel>> GetAuthByAccountId(int AccountId, string QBEnv);
         Task<int> UpdateRefreshToken(int Id, string RefreshToken);
