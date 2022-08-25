@@ -73,11 +73,10 @@ namespace QBFC.Bll
                 oAuthDetails.RefreshToken = respToken.RefreshToken;
                 oAuthDetails.ConsumedDT = DateTime.Now;
                 _ = await _qbAuthRepos.UpsertAuthDetails(oAuthDetails);
-                _ = await InsertLog(JsonConvert.SerializeObject(log_auth), JsonConvert.SerializeObject(respToken), $"AuthClient");
                 isSuccess = true;
             }
 
-            _ = await InsertLog(JsonConvert.SerializeObject(log_auth), JsonConvert.SerializeObject(respToken), $"AuthClient", false);
+            _ = await InsertLog(JsonConvert.SerializeObject(log_auth), JsonConvert.SerializeObject(respToken), $"AuthClient", isSuccess);
 
             return (oAuthDetails, isSuccess);
         }
