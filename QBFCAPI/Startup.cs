@@ -35,7 +35,7 @@ namespace QBFCAPI
         {
             string dbConnectionString = Configuration.GetConnectionString("QBFC");
 
-            services.AddDbContext<QBFCDbcontext>(options => 
+            services.AddDbContext<QBFCDbcontext>(options =>
             options.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString)));
 
             services.AddControllers().AddNewtonsoftJson();
@@ -49,6 +49,9 @@ namespace QBFCAPI
             services.AddTransient<IQbClientBll, QbClientBll>();
             services.AddTransient<IHttpClientBll, HttpClientBll>();
             services.AddTransient<IUtility, Utility>();
+
+            services.AddTransient<IlogsBll, LogsBll>();
+            services.AddTransient<IAuthDetailsBll, AuthDetailsBll>();
 
             services.AddTransient<IQbLogsRepos, QbLogsRepos>();
             services.AddTransient<IQbAuthRepos, QbAuthRepos>();

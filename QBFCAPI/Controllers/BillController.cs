@@ -13,11 +13,13 @@ namespace QBFCAPI.Controllers
     public class BillController : ControllerBase
     {
         private readonly IQbClientBll _qbClient;
+        private readonly IAuthDetailsBll _authDetailsBll;
         private readonly IUtility _utility;
 
-        public BillController(IQbClientBll qbClient, IUtility utility)
+        public BillController(IQbClientBll qbClient, IUtility utility, IAuthDetailsBll authDetailsBll)
         {
             _qbClient = qbClient;
+            _authDetailsBll = authDetailsBll;
             _utility = utility;
         }
 
@@ -57,7 +59,7 @@ namespace QBFCAPI.Controllers
                     return BadRequest("Invalid request check auth model");
                 }
 
-                var result = await _qbClient.UpsertAuthDetails(authModel);
+                var result = await _authDetailsBll.UpsertAuthDetails(authModel);
 
                 Response<int> response = new Response<int>(result);
 
@@ -78,7 +80,7 @@ namespace QBFCAPI.Controllers
             {
                 if (accountId != 0 && !string.IsNullOrEmpty(qbEnv))
                 {
-                    var response = await _qbClient.GetAuthByAccountId(accountId, qbEnv);
+                    var response = await _authDetailsBll.GetAuthByAccountId(accountId, qbEnv);
 
                     return Ok(response);
                 }
@@ -102,7 +104,7 @@ namespace QBFCAPI.Controllers
                     return BadRequest("Invalid request");
                 }
 
-                var result = await _qbClient.UpdateRefreshToken(Id, RefreshToken);
+                var result = await _authDetailsBll.UpdateRefreshToken(Id, RefreshToken);
 
                 Response<int> response = new Response<int>(result);
 
