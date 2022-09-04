@@ -33,7 +33,7 @@ namespace QBFCAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string dbConnectionString = Configuration.GetConnectionString("QBFC");
+            string dbConnectionString = Configuration.GetConnectionString("localhost");
 
             services.AddDbContext<QBFCDbcontext>(options =>
             options.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString)));
