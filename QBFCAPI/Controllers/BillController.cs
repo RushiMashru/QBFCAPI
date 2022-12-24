@@ -114,7 +114,6 @@ namespace QBFCAPI.Controllers
             {
                 return Problem(detail: ex.Message, instance: ex.Source, statusCode: 500, title: "Error");
             }
-
         }
     }
 }
